@@ -10,18 +10,18 @@ async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const configService = app.get(ConfigService);
   
-  // Enable CORS for API access
-  app.enableCors();
+  app.enableCors({
+    origin: ['http://localhost:3000', 'http://localhost:3001'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  });
   
-  // Set up static file serving for uploads
   app.useStaticAssets(join(__dirname, '..', 'uploads'), {
     prefix: '/uploads/',
   });
   
-  // Enable validation
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
   
-  // Set up Swagger documentation using configuration
   const swaggerConfig = configService.get('swagger');
   const config = new DocumentBuilder()
     .setTitle(swaggerConfig.title)
@@ -33,8 +33,8 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup(swaggerConfig.path, app, document);
   
-  // Start the server
-  const port = configService.get('app.port', 3000);
+  
+  const port = configService.get('app.port', 4000);
   await app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
   });
